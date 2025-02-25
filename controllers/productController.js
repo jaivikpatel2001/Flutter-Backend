@@ -5,7 +5,7 @@ exports.createProduct = async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
-    res.status(201).json(product);
+    res.status(201).json(await product.populate(["category", "createdBy"]));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -14,7 +14,7 @@ exports.createProduct = async (req, res) => {
 // Get All Products
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate("category");
+    const products = await Product.find().populate(["category", "createdBy"]);
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -24,7 +24,7 @@ exports.getProducts = async (req, res) => {
 // Get Single Product by ID
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("category");
+    const product = await Product.findById(req.params.id).populate(["category", "createdBy"]);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -40,7 +40,7 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
-    }).populate("category");
+    }).populate(["category", "createdBy"]);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -53,7 +53,7 @@ exports.updateProduct = async (req, res) => {
 // Delete Product
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findByIdAndDelete(req.params.id).populate(["category", "createdBy"]);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }

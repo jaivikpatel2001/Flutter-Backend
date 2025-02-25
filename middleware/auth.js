@@ -34,8 +34,11 @@ exports.isSuperAdmin = (req, res, next) => {
 
 // ✅ Role-based authorization
 exports.roleAuth = (roles) => (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-        return res.status(403).json({ message: "Access Forbidden" });
+    if (!req.user) {
+        return res.status(403).json({ message: "Access Forbidden. Please log in." });
+    }
+    if (!roles.includes(req.user.role)) {
+        return res.status(403).json({ message: `Access Denied. ${req.user.role} role is not authorized to access this resource.` });
     }
     next();
 };

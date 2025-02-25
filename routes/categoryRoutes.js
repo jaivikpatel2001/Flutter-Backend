@@ -6,14 +6,15 @@ const {
   updateCategory,
   deleteCategory,
 } = require("../controllers/categoryController");
-const { authenticate } = require("../middleware/auth");
+const { authenticate, roleAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("/", createCategory);
-router.get("/", getCategories);
+// Only doctors can create, update, or delete categories
+router.post("/", authenticate, roleAuth(["doctor"]), createCategory);
+router.get("/",  getCategories);
 router.get("/:id", getCategoryById);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+router.put("/:id", authenticate, roleAuth(["doctor"]), updateCategory);
+router.delete("/:id", authenticate, roleAuth(["doctor"]), deleteCategory);
 
 module.exports = router;

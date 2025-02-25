@@ -15,9 +15,9 @@ exports.registerUser = async (req, res) => {
     const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
 
+    const populatedUser = await User.findById(user._id).populate('createdBy');
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-    res.json({ message: "User created successfully", token });
+    res.json({ message: "User created successfully", token, user: populatedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -27,7 +27,7 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('createdBy');
     if (!user) return res.status(400).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -35,7 +35,7 @@ exports.loginUser = async (req, res) => {
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.json({ message: "Login successful", token });
+    res.json({ message: "Login successful", role: user.role, token, user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -45,7 +45,7 @@ exports.loginUser = async (req, res) => {
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate('createdBy');
     if (!user) return res.status(400).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -54,7 +54,7 @@ exports.changePassword = async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    res.json({ message: "Password changed successfully" });
+    res.json({ message: "Password changed successfully", user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
