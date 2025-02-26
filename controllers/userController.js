@@ -15,7 +15,7 @@ exports.registerUser = async (req, res) => {
     const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
 
-    const populatedUser = await User.findById(user._id).populate('createdBy');
+    const populatedUser = await User.findById(user._id).populate('createdBy', null, null, { strictPopulate: false });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.json({ message: "User created successfully", token, user: populatedUser });
   } catch (error) {
@@ -27,7 +27,7 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).populate('createdBy');
+    const user = await User.findOne({ email }).populate('createdBy', null, null, { strictPopulate: false });
     if (!user) return res.status(400).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);

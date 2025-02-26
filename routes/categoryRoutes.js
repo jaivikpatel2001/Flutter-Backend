@@ -10,11 +10,11 @@ const { authenticate, roleAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-// Only doctors can create, update, or delete categories
-router.post("/", authenticate, roleAuth(["doctor"]), createCategory);
-router.get("/",  getCategories);
+// Only doctors & club can create, update, or delete categories
+router.post("/", authenticate, roleAuth(["doctor", "club"]), createCategory);
+router.get("/", getCategories);
 router.get("/:id", getCategoryById);
-router.put("/:id", authenticate, roleAuth(["doctor"]), updateCategory);
-router.delete("/:id", authenticate, roleAuth(["doctor"]), deleteCategory);
+router.put("/:id", authenticate, roleAuth(["doctor", "club"]), updateCategory);
+router.delete("/:id", authenticate, roleAuth(["doctor", "club"]), deleteCategory);
 
 module.exports = router;

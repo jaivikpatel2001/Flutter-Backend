@@ -3,8 +3,8 @@ require('dotenv').config();
 
 const connectDB = async () => {
     try {
-        const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.zodbp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-        await mongoose.connect(connectionString);
+        const connectionString = process.env.MongoDB_USER; // Corrected the connection string
+        await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true }); // Added options for connection
         console.log('MongoDB Connected...');
     } catch (error) {
         console.error('MongoDB Connection Failed:', error);
