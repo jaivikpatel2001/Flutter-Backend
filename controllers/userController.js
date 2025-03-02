@@ -155,7 +155,7 @@ exports.forgotPassword = async (req, res) => {
     // * Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiry
+    user.resetPasswordExpires = Date.now() + + 15 * 60 * 1000;; // 1 hour expiry
     await user.save();
 
     // * Create reset link
@@ -192,14 +192,20 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid token format" });
     }
 
-    const user = await User.findOne({
-      resetPasswordToken: trimmedToken,
-      resetPasswordExpires: { $gt: Date.now() },
-    });
-
+    // Find user by token
+    const user = await User.findOne({ resetPasswordToken: trimmedToken });
+    
     if (!user) {
       return res.status(400).json({ 
         message: "Invalid or expired token",
+        details: "Please request a new password reset link"
+      });
+    }
+
+    // Check if token is expired
+    if (user.resetPasswordExpires < Date.now()) {
+      return res.status(400).json({ 
+        message: "Token has expired",
         details: "Please request a new password reset link"
       });
     }

@@ -16,7 +16,7 @@ const createSuperadmin = async () => {
         const superadmin = await User.create({
             name: 'superadmin',
             email: 'superadmin@example.com',
-            password: await bcrypt.hash('superadmin123', 10),
+            password: await bcrypt.hash('password', 10),
             role: 'superadmin',
             isVerified: true
         });
@@ -24,7 +24,7 @@ const createSuperadmin = async () => {
         superadminCreated = true;
         console.log('Superadmin created successfully');
     } catch (error) {
-        console.error('Error creating superadmin user:', error);
+        console.error('Error creating superadmin:', error);
     }
 };
 

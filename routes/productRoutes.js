@@ -6,14 +6,15 @@ const {
   updateProduct,
   deleteProduct
 } = require("../controllers/productController");
-const { authenticate, roleAuth, isSuperAdmin } = require("../middleware/auth");
+const { authenticate } = require("../middleware/auth");
+const { hasPermission } = require("../middleware/permission");
 const router = express.Router();
 
-// Product routes with authentication and role-based authorization
-router.post("/", authenticate, roleAuth(["doctor", "club"]), createProduct);
-router.get("/", getProducts);
-router.get("/:id", getProductById);
-router.put("/:id", authenticate, roleAuth(["doctor", "club"]), updateProduct);
-router.delete("/:id", authenticate, roleAuth(["doctor", "club"]), deleteProduct);
+// Product routes with authentication and permission-based authorization
+router.post("/", authenticate, hasPermission("product", "create"), createProduct);
+router.get("/", authenticate, hasPermission("product", "read"), getProducts);
+router.get("/:id", authenticate, hasPermission("product", "read"), getProductById);
+router.put("/:id", authenticate, hasPermission("product", "update"), updateProduct);
+router.delete("/:id", authenticate, hasPermission("product", "delete"), deleteProduct);
 
 module.exports = router;
