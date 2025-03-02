@@ -24,7 +24,7 @@ const createSuperadmin = async () => {
         superadminCreated = true;
         console.log('Superadmin created successfully');
     } catch (error) {
-        console.error('Error creating superadmin:', error);
+        console.error('Error creating superadmin user:', error);
     }
 };
 
