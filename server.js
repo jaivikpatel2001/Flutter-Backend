@@ -1,6 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/db");
 const createSuperadmin = require("./utils/createSuperadmin");
+const cookieParser = require("cookie-parser"); // Add cookie-parser
 const app = express();
 
 require("dotenv").config();
@@ -10,6 +11,7 @@ connectDB();
 createSuperadmin();
 
 app.use(express.json());
+app.use(cookieParser()); // Initialize cookie-parser
 
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));

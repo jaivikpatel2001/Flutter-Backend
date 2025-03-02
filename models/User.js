@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
         enum: ["superadmin", "club", "sportsperson", "doctor"], 
         default: "sportsperson" 
     },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // To track who created the user
     createdAt: { type: Date, default: Date.now }
 });
 

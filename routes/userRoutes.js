@@ -1,19 +1,30 @@
 const express = require("express");
-const { registerUser, loginUser, changePassword, logoutUser } = require("../controllers/userController");
-const { authenticate, isSuperAdmin } = require("../middleware/auth");
+const { 
+  registerUser, 
+  loginUser, 
+  changePassword, 
+  logoutUser, 
+  getUsers, 
+  getUserById, 
+  forgotPassword, 
+  resetPassword 
+} = require("../controllers/userController");
+const { authenticate, roleAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-// ✅ Only Superadmin can create users
-router.post("/register", authenticate, isSuperAdmin, registerUser);
-
-// ✅ Any user can log in
+// Authentication routes
 router.post("/login", loginUser);
-
-// ✅ Only authenticated users can change passwords
-router.put("/change-password", authenticate, changePassword);
-
-// ✅ Only authenticated users can log out
 router.post("/logout", authenticate, logoutUser);
+
+// Password management routes
+router.put("/change-password", authenticate, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+
+// User management routes
+router.post("/register", authenticate, registerUser);
+router.get("/", authenticate, roleAuth(["superadmin"]), getUsers);
+router.get("/:id", authenticate, getUserById);
 
 module.exports = router;

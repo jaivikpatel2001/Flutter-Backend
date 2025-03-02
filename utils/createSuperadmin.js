@@ -1,28 +1,27 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
+let superadminCreated = false;
+
 const createSuperadmin = async () => {
+    if (superadminCreated) return;
+    
     try {
-        // Check if superadmin already exists
         const existingSuperadmin = await User.findOne({ role: 'superadmin' });
         if (existingSuperadmin) {
-            console.log('Superadmin already exists');
-            return;
+            superadminCreated = true;
+            return console.log('Superadmin already exists');
         }
 
-        // Create superadmin credentials
-        const superadminData = {
+        const superadmin = await User.create({
             name: 'superadmin',
             email: 'superadmin@example.com',
-            password: await bcrypt.hash('superadmin123', 10), // Encrypt password
+            password: await bcrypt.hash('superadmin123', 10),
             role: 'superadmin',
             isVerified: true
-        };
+        });
 
-        // Create new superadmin
-        const superadmin = new User(superadminData);
-        await superadmin.save();
-
+        superadminCreated = true;
         console.log('Superadmin created successfully');
     } catch (error) {
         console.error('Error creating superadmin:', error);
