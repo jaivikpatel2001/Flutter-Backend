@@ -6,17 +6,24 @@ exports.createPermission = async (req, res) => {
     // Check if permission with same name already exists
     const existingPermission = await Permission.findOne({ name: req.body.name });
     if (existingPermission) {
-      return res.status(400).json({ 
-        message: `Permission with name '${req.body.name}' already exists` 
+      return res.status(400).json({
+        message: `Permission with name '${req.body.name}' already exists`
       });
     }
 
-    const permission = await Permission.create(req.body);
+    const permission = new Permission({
+      name: req.body.name,
+      description: req.body.description,
+      canCreateCategory: req.body.canCreateCategory,
+      canCreateProduct: req.body.canCreateProduct
+    });
+
+    await permission.save();
     res.status(201).json(permission);
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ 
-        message: "Duplicate permission detected. Permission name must be unique." 
+      return res.status(400).json({
+        message: "Duplicate permission detected. Permission name must be unique."
       });
     }
     res.status(500).json({ message: error.message });
@@ -83,30 +90,21 @@ exports.deletePermission = async (req, res) => {
 exports.assignPermission = async (req, res) => {
   try {
     const { userId, permissionId } = req.body;
-    
-    // Verify the permission exists
     const permission = await Permission.findById(permissionId);
     if (!permission) {
       return res.status(404).json({ message: "Permission not found" });
     }
-
-    // Find the user and update their permissions array
     const user = await User.findByIdAndUpdate(
       userId,
       { $addToSet: { permissions: permissionId } },
       { new: true }
     );
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    res.json({ 
+    res.json({
       message: "Permission assigned successfully",
-      user: {
-        id: user._id,
-        permissions: user.permissions
-      }
+      user: { id: user._id, permissions: user.permissions }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,15 +1,15 @@
 const express = require("express");
-const { 
-  registerUser, 
-  loginUser, 
-  changePassword, 
-  logoutUser, 
-  getUsers, 
-  getUserById, 
-  forgotPassword, 
-  resetPassword 
+const {
+  registerUser,
+  loginUser,
+  changePassword,
+  logoutUser,
+  getUsers,
+  getUserById,
+  forgotPassword,
+  resetPassword
 } = require("../controllers/userController");
-const { authenticate, roleAuth } = require("../middleware/auth");
+const { authenticate, roleCheck, permissionCheck } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ router.post("/reset-password", resetPassword);
 
 // User management routes
 router.post("/register", authenticate, registerUser);
-router.get("/", authenticate, roleAuth(["superadmin"]), getUsers);
+router.get("/", authenticate, roleCheck(["superadmin"]), permissionCheck(""), getUsers);
 router.get("/:id", authenticate, getUserById);
 
 module.exports = router;

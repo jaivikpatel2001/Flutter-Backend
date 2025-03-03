@@ -6,15 +6,14 @@ const {
   updateProduct,
   deleteProduct
 } = require("../controllers/productController");
-const { authenticate } = require("../middleware/auth");
-const { hasPermission } = require("../middleware/permission");
+const { authenticate, roleCheck, permissionCheck } = require("../middleware/auth");
 const router = express.Router();
 
-// Product routes with authentication and permission-based authorization
-router.post("/", authenticate, hasPermission("product", "create"), createProduct);
-router.get("/", authenticate, hasPermission("product", "read"), getProducts);
-router.get("/:id", authenticate, hasPermission("product", "read"), getProductById);
-router.put("/:id", authenticate, hasPermission("product", "update"), updateProduct);
-router.delete("/:id", authenticate, hasPermission("product", "delete"), deleteProduct);
+// Product routes with authentication and role and permission checks
+router.post("/", authenticate, roleCheck(["club"]), permissionCheck("canCreateProduct"), createProduct);
+router.get("/", authenticate, getProducts);
+router.get("/:id", authenticate, getProductById);
+router.put("/:id", authenticate, roleCheck(["club"]), permissionCheck("canUpdateProduct"), updateProduct);
+router.delete("/:id", authenticate, roleCheck(["club"]), permissionCheck("canDeleteProduct"), deleteProduct);
 
 module.exports = router;

@@ -36,8 +36,8 @@ exports.getCategoryById = async (req, res) => {
 // Update Category
 exports.updateCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { 
-      new: true 
+    const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
+      new: true
     }).populate('createdBy');
     if (!category) return res.status(404).json({ message: "Category not found" });
     res.json({ message: "Category updated successfully", category });

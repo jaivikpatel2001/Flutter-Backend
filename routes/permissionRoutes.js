@@ -7,11 +7,11 @@ const {
   deletePermission,
   assignPermission
 } = require("../controllers/permissionController");
-const { authenticate, isSuperAdmin } = require("../middleware/auth");
+const { authenticate, isSuperAdmin, roleCheck, permissionCheck } = require("../middleware/auth");
 const router = express.Router();
 
-// Permission routes with authentication and superadmin authorization
-router.post("/", authenticate, isSuperAdmin, createPermission);
+// Permission routes with authentication and authorization for superadmin and club
+router.post("/", authenticate, roleCheck(["superadmin", "club"]), createPermission);
 /*
 POST /permissions
 Headers: 
@@ -20,10 +20,8 @@ Body:
 {
   "name": "manage_users",
   "description": "Allows managing users",
-  "canCreate": true,
-  "canRead": true,
-  "canUpdate": true,
-  "canDelete": false
+  "canCreateCategory": true,
+  "canCreateProduct": false
 }
 */
 
@@ -59,7 +57,7 @@ Headers:
   - Authorization: Bearer <superadmin_token>
 */
 
-router.post("/assign", authenticate, isSuperAdmin, assignPermission);
+router.post("/assign", authenticate, roleCheck(["superadmin", "club"]), assignPermission);
 /*
 POST /permissions/assign
 Headers: 
@@ -72,5 +70,3 @@ Body:
 */
 
 module.exports = router;
-
-

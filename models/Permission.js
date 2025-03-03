@@ -11,34 +11,16 @@ const permissionSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    canCreate: {
-        type: Boolean,
-        default: false
-    },
-    canRead: {
-        type: Boolean,
-        default: false
-    },
-    canUpdate: {
-        type: Boolean,
-        default: false
-    },
-    canDelete: {
-        type: Boolean,
-        default: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
+    // Specific Permissions for Category Management
+    canCreateCategory: { type: Boolean, default: false },
+    canCreateProduct: { type: Boolean, default: false },
+
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
-// Update the updatedAt field before saving
-permissionSchema.pre('save', function(next) {
+// Update `updatedAt` field before saving
+permissionSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });
