@@ -61,20 +61,22 @@ exports.loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password", result: false });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // Generate JWT token with user ID and role
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      sameSite: 'strict'
-    });
+    // Set token in Authorization header
+    res.setHeader('Authorization', `Bearer ${token}`);
 
     res.json({ message: "Login successful", role: user.role, user, token, result: true });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
   }
 };
+
 
 // ! Change user password
 exports.changePassword = async (req, res) => {
@@ -106,8 +108,21 @@ exports.changePassword = async (req, res) => {
 // ! Get all users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password').populate('createdBy', null, null, { strictPopulate: false });
-    res.json({ users, result: true });
+    // Get all users grouped by their roles
+    const superadmins = await User.find({ role: 'superadmin' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
+    const doctors = await User.find({ role: 'doctor' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
+    const sportspersons = await User.find({ role: 'sportsperson' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
+    const clubs = await User.find({ role: 'club' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
+
+    res.json({
+      users: {
+        superadmins,
+        doctors,
+        sportspersons,
+        clubs
+      },
+      result: true
+    });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
   }
@@ -233,12 +248,8 @@ exports.resetPassword = async (req, res) => {
 
 exports.logoutUser = async (req, res) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
-
+    // Since token is in Authorization header, no need to clear cookies
+    // Simply return success response
     res.status(200).json({ message: "Logged out successfully", result: true });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });

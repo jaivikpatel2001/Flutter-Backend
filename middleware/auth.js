@@ -3,9 +3,10 @@ const Permission = require('../models/Permission');
 const { getUserByIdHandler } = require("../controllers/userController");
 const User = require("../models/User");
 
-// Verify JWT token from cookies
+// Verify JWT token from Authorization header
 exports.authenticate = (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
   if (!token) return res.status(401).json({ message: "Authentication required. Please login to access this resource." });
 
   try {

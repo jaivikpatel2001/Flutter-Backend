@@ -5,8 +5,13 @@ exports.createCategory = async (req, res) => {
   try {
     const category = new Category(req.body);
     await category.save();
-    const populatedCategory = await Category.findById(category._id).populate('createdBy');
-    res.json({ message: "Category created successfully", category: populatedCategory });
+    const populatedCategory = await Category.findById(category._id).populate(
+      "createdBy"
+    );
+    res.json({
+      message: "Category created successfully",
+      category: populatedCategory,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -15,7 +20,7 @@ exports.createCategory = async (req, res) => {
 // Get All Categories
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find().populate('createdBy');
+    const categories = await Category.find().populate("createdBy");
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -25,8 +30,11 @@ exports.getCategories = async (req, res) => {
 // Get Single Category by ID
 exports.getCategoryById = async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id).populate('createdBy');
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    const category = await Category.findById(req.params.id).populate(
+      "createdBy"
+    );
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
     res.json(category);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -37,9 +45,10 @@ exports.getCategoryById = async (req, res) => {
 exports.updateCategory = async (req, res) => {
   try {
     const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
-      new: true
-    }).populate('createdBy');
-    if (!category) return res.status(404).json({ message: "Category not found" });
+      new: true,
+    }).populate("createdBy");
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
     res.json({ message: "Category updated successfully", category });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -49,8 +58,11 @@ exports.updateCategory = async (req, res) => {
 // Delete Category
 exports.deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id).populate('createdBy');
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    const category = await Category.findByIdAndDelete(req.params.id).populate(
+      "createdBy"
+    );
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
