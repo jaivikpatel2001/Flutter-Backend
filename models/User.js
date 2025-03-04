@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ["superadmin", "club", "sportsperson", "doctor"],
-        default: "sportsperson"
+        default: "club"
     },
     permissions: [{
         type: mongoose.Schema.Types.ObjectId,
