@@ -1,6 +1,9 @@
 const express = require("express");
 const connectDB = require("./config/db");
-const createSuperadmin = require("./utils/createSuperadmin");
+const createUsers = require("./utils/createUsers");
+const createCategories = require("./utils/createCategory");
+const createPermissions = require("./utils/createPermission");
+const createProducts = require("./utils/createProduct");
 const cookieParser = require("cookie-parser"); // Add cookie-parser
 const cors = require("cors"); // Add cors
 const app = express();
@@ -8,8 +11,13 @@ const app = express();
 require("dotenv").config();
 connectDB();
 
-// Create superadmin on server start
-createSuperadmin();
+// Run seeders in proper order
+(async () => {
+  await createUsers(); // First create users
+  await createCategories(); // Then create categories
+  await createPermissions(); // Then create permissions
+  await createProducts(); // Finally create products
+})();
 
 app.use(cors({
   origin: 'http://localhost:5173', // Specify the allowed origin
