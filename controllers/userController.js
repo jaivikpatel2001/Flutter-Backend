@@ -414,13 +414,13 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found", result: false });
     }
 
-    // Soft delete by setting status to 0 (soft deleted)
-    userToDelete.status = 0;
+    // Toggle status: if already soft deleted (status 0), set to 1 (active), else set to 0 (soft deleted)
+    userToDelete.status = userToDelete.status === 0 ? 1 : 0;
     await userToDelete.save();
 
     res
       .status(200)
-      .json({ message: "User deleted successfully", result: true });
+      .json({ message: userToDelete.status === 0 ? "User deleted successfully" : "User restored successfully", result: true });
   } catch (error) {
     res.status(500).json({ message: "An error occurred while deleting the user", error: error.message, result: false });
   }
