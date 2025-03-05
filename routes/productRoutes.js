@@ -13,7 +13,7 @@ const router = express.Router();
 router.post("/", authenticate, roleCheck(["club"]), createProduct);
 router.get("/", getProducts);
 router.get("/:id", getProductById);
-router.put("/:id", authenticate, roleCheck(["club"]), permissionCheck("canUpdateProduct"), updateProduct);
-router.delete("/:id", authenticate, roleCheck(["club"]), permissionCheck("canDeleteProduct"), deleteProduct);
+router.put("/:id", authenticate, roleCheck(["club"]), updateProduct);
+router.delete("/:id", authenticate, roleCheck(["club"]), deleteProduct);
 
 module.exports = router;
