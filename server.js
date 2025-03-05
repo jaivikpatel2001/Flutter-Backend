@@ -1,31 +1,26 @@
 const express = require("express");
 const connectDB = require("./config/db");
-const createUsers = require("./utils/createUsers");
-const createCategories = require("./utils/createCategory");
-const createPermissions = require("./utils/createPermission");
-const createProducts = require("./utils/createProduct");
-const cookieParser = require("cookie-parser"); // Add cookie-parser
-const cors = require("cors"); // Add cors
-const app = express();
+const checkSeederStatus = require("./utils/checkSeederStatus"); // Import the function
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 require("dotenv").config();
 connectDB();
 
-// Run seeders in proper order
-(async () => {
-  await createUsers(); // First create users
-  await createCategories(); // Then create categories
-  await createPermissions(); // Then create permissions
-  await createProducts(); // Finally create products
-})();
+// Run the seeder check
+checkSeederStatus();
 
-app.use(cors({
-  origin: 'http://localhost:5173', // Specify the allowed origin
-  credentials: true // Allow credentials to be included
-})); // Enable CORS
+const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
-app.use(cookieParser()); // Initialize cookie-parser
+app.use(cookieParser());
 
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));

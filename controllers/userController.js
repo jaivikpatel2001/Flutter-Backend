@@ -13,35 +13,65 @@ exports.registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: "All fields are required", result: false });
+      return res
+        .status(400)
+        .json({ message: "All fields are required", result: false });
     }
 
     const creator = await User.findById(req.user.id);
-    if (!creator) return res.status(404).json({ message: "Creator not found", result: false });
+    if (!creator)
+      return res
+        .status(404)
+        .json({ message: "Creator not found", result: false });
 
     // Role-based permission checks
     if (creator.role === "superadmin") {
       if (role !== "club") {
-        return res.status(403).json({ message: "Superadmin can only create Club users", result: false });
+        return res
+          .status(403)
+          .json({
+            message: "Superadmin can only create Club users",
+            result: false,
+          });
       }
     } else if (creator.role === "club") {
       if (!["doctor", "sportsperson"].includes(role)) {
-        return res.status(403).json({ message: "Club can only create Doctor and Sportsperson users", result: false });
+        return res
+          .status(403)
+          .json({
+            message: "Club can only create Doctor and Sportsperson users",
+            result: false,
+          });
       }
     } else {
-      return res.status(403).json({ message: "You are not allowed to create users", result: false });
+      return res
+        .status(403)
+        .json({
+          message: "You are not allowed to create users",
+          result: false,
+        });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists", result: false });
+      return res
+        .status(400)
+        .json({ message: "User already exists", result: false });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword, role, createdBy: req.user.id });
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      createdBy: req.user.id,
+    });
     await user.save();
 
-    res.status(201).json({ message: "User created successfully", user, result: true });
+    res
+      .status(201)
+      .json({ message: "User created successfully", user, result: true });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
   }
@@ -52,48 +82,78 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required", result: false });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required", result: false });
     }
 
-    const user = await User.findOne({ email }).populate('createdBy', null, null, { strictPopulate: false });
-    if (!user) return res.status(400).json({ message: "User not found", result: false });
+    const user = await User.findOne({ email }).populate(
+      "createdBy",
+      null,
+      null,
+      { strictPopulate: false }
+    );
+    if (!user)
+      return res.status(400).json({ message: "User not found", result: false });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid password", result: false });
+    if (!isMatch)
+      return res
+        .status(400)
+        .json({ message: "Invalid password", result: false });
 
     // Generate JWT token with user ID and role
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" }
     );
 
     // Set token in Authorization header
-    res.setHeader('Authorization', `Bearer ${token}`);
+    res.setHeader("Authorization", `Bearer ${token}`);
 
-    res.json({ message: "Login successful", role: user.role, user, token, result: true });
+    res.json({
+      message: "Login successful",
+      role: user.role,
+      user,
+      token,
+      result: true,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
   }
 };
-
 
 // ! Change user password
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) {
-      return res.status(400).json({ message: "Both old and new passwords are required", result: false });
+      return res
+        .status(400)
+        .json({
+          message: "Both old and new passwords are required",
+          result: false,
+        });
     }
 
-    const user = await User.findById(req.user.id).populate('createdBy');
-    if (!user) return res.status(400).json({ message: "User not found", result: false });
+    const user = await User.findById(req.user.id).populate("createdBy");
+    if (!user)
+      return res.status(400).json({ message: "User not found", result: false });
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Incorrect old password", result: false });
+    if (!isMatch)
+      return res
+        .status(400)
+        .json({ message: "Incorrect old password", result: false });
 
     if (oldPassword === newPassword) {
-      return res.status(400).json({ message: "New password must be different from old password", result: false });
+      return res
+        .status(400)
+        .json({
+          message: "New password must be different from old password",
+          result: false,
+        });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -108,21 +168,39 @@ exports.changePassword = async (req, res) => {
 // ! Get all users
 exports.getUsers = async (req, res) => {
   try {
-    // Get all users grouped by their roles
-    const superadmins = await User.find({ role: 'superadmin' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
-    const doctors = await User.find({ role: 'doctor' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
-    const sportspersons = await User.find({ role: 'sportsperson' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
-    const clubs = await User.find({ role: 'club' }).select('-password').populate('createdBy', null, null, { strictPopulate: false });
-
-    res.json({
-      users: {
-        superadmins,
-        doctors,
-        sportspersons,
-        clubs
-      },
-      result: true
-    });
+    const { role, id } = req.user; // Extract role and ID of the logged-in user
+    let users = {};
+    if (role === "superadmin") {
+      // Superadmin can access all users
+      users.superadmins = await User.find({ role: "superadmin" })
+        .select("-password")
+        .populate("createdBy");
+      users.doctors = await User.find({ role: "doctor" })
+        .select("-password")
+        .populate("createdBy");
+      users.sportspersons = await User.find({ role: "sportsperson" })
+        .select("-password")
+        .populate("createdBy");
+      users.clubs = await User.find({ role: "club" })
+        .select("-password")
+        .populate("createdBy");
+    } else if (role === "club") {
+      // Club can only access doctors & sportspersons created by them
+      users.doctors = await User.find({ role: "doctor", createdBy: id })
+        .select("-password")
+        .populate("createdBy");
+      users.sportspersons = await User.find({
+        role: "sportsperson",
+        createdBy: id,
+      })
+        .select("-password")
+        .populate("createdBy");
+    } else {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized access", result: false });
+    }
+    res.json({ users, result: true });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
   }
@@ -133,7 +211,9 @@ exports.getUserById = async (req, res) => {
   const result = await exports.getUserByIdHandler(id);
 
   if (!result.result) {
-    return res.status(result.error === "User not found" ? 404 : 400).json(result);
+    return res
+      .status(result.error === "User not found" ? 404 : 400)
+      .json(result);
   }
 
   res.json(result);
@@ -150,7 +230,9 @@ exports.updateUserProfile = async (req, res) => {
 
   // Inform the user that only the name can be updated
   if (Object.keys(req.body).length > 1) {
-    return res.status(400).json({ message: "You can only update the name field", result: false });
+    return res
+      .status(400)
+      .json({ message: "You can only update the name field", result: false });
   }
 
   try {
@@ -162,13 +244,15 @@ exports.updateUserProfile = async (req, res) => {
     user.name = name;
     await user.save();
 
-    res.json({ message: "User profile updated successfully", user, result: true });
+    res.json({
+      message: "User profile updated successfully",
+      user,
+      result: true,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
   }
 };
-
-
 
 exports.getUserByIdHandler = async (userId) => {
   try {
@@ -176,8 +260,8 @@ exports.getUserByIdHandler = async (userId) => {
       return { error: "Invalid user ID", result: false };
     }
     const user = await User.findById(userId)
-      .select('-password')
-      .populate('createdBy', null, null, { strictPopulate: false });
+      .select("-password")
+      .populate("createdBy", null, null, { strictPopulate: false });
 
     if (!user) {
       return { error: "User not found", result: false };
@@ -194,7 +278,9 @@ exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ message: "Email is required", result: false });
+      return res
+        .status(400)
+        .json({ message: "Email is required", result: false });
     }
 
     const user = await User.findOne({ email });
@@ -229,12 +315,19 @@ exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
     if (!token || !newPassword) {
-      return res.status(400).json({ message: "Token and new password are required", result: false });
+      return res
+        .status(400)
+        .json({
+          message: "Token and new password are required",
+          result: false,
+        });
     }
 
     const trimmedToken = token.trim();
     if (!trimmedToken || trimmedToken.length !== 64) {
-      return res.status(400).json({ message: "Invalid token format", result: false });
+      return res
+        .status(400)
+        .json({ message: "Invalid token format", result: false });
     }
 
     const user = await User.findOne({ resetPasswordToken: trimmedToken });
@@ -242,7 +335,7 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({
         message: "Invalid or expired token",
         details: "Please request a new password reset link",
-        result: false
+        result: false,
       });
     }
 
@@ -250,12 +343,17 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({
         message: "Token has expired",
         details: "Please request a new password reset link",
-        result: false
+        result: false,
       });
     }
 
     if (newPassword.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters long", result: false });
+      return res
+        .status(400)
+        .json({
+          message: "Password must be at least 8 characters long",
+          result: false,
+        });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -266,13 +364,13 @@ exports.resetPassword = async (req, res) => {
     res.json({
       message: "Password reset successful",
       details: "You can now log in with your new password",
-      result: true
+      result: true,
     });
   } catch (error) {
     res.status(500).json({
       message: "An error occurred while resetting password",
       error: error.message,
-      result: false
+      result: false,
     });
   }
 };
@@ -284,5 +382,46 @@ exports.logoutUser = async (req, res) => {
     res.status(200).json({ message: "Logged out successfully", result: true });
   } catch (error) {
     res.status(500).json({ message: error.message, result: false });
+  }
+};
+
+// ! Delete user with role-based permissions
+exports.deleteUser = async (req, res) => {
+  try {
+    const userIdToDelete = req.params.id;
+    const requester = await User.findById(req.user.id);
+
+    if (!requester) {
+      return res
+        .status(404)
+        .json({ message: "Requester not found", result: false });
+    }
+
+    // Role-based permission checks
+    if (requester.role === "club") {
+      // Club can only delete their own users
+      const userToDelete = await User.findById(userIdToDelete);
+      if (!userToDelete || userToDelete.createdBy.toString() !== requester.id) {
+        return res.status(403).json({
+          message: "You can only delete your own users",
+          result: false,
+        });
+      }
+    } 
+
+    const userToDelete = await User.findById(userIdToDelete);
+    if (!userToDelete) {
+      return res.status(404).json({ message: "User not found", result: false });
+    }
+
+    // Soft delete by setting status to 0 (soft deleted)
+    userToDelete.status = 0;
+    await userToDelete.save();
+
+    res
+      .status(200)
+      .json({ message: "User deleted successfully", result: true });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred while deleting the user", error: error.message, result: false });
   }
 };

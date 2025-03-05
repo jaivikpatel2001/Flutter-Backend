@@ -9,6 +9,7 @@ const {
   forgotPassword,
   resetPassword,
   updateUserProfile, // Added updateUserProfile
+  deleteUser, // Added deleteUser
 } = require("../controllers/userController");
 const {
   authenticate,
@@ -29,8 +30,9 @@ router.post("/reset-password", resetPassword);
 
 // User management routes
 router.post("/register", authenticate, registerUser);
-router.get("/", authenticate, roleCheck(["superadmin"]), getUsers);
+router.get("/", authenticate, roleCheck(["superadmin","club"]), getUsers);
 router.get("/:id", authenticate, getUserById);
 router.put("/profile/:id", authenticate, updateUserProfile); // Added route for updating user profile
+router.delete("/:id", authenticate, roleCheck(["club"]), deleteUser); // Added route for deleting user
 
 module.exports = router;

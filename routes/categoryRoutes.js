@@ -26,6 +26,6 @@ router.post(
 router.get("/", getCategories);
 router.get("/:id", getCategoryById);
 router.put("/:id", authenticate, roleCheck(["club"]), updateCategory);
-router.delete("/:id", authenticate, roleCheck(["club"]), deleteCategory);
+router.delete("/:id", authenticate, roleCheck(["superadmin","club"]), deleteCategory);
 
 module.exports = router;
