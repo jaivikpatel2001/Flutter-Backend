@@ -9,10 +9,79 @@ const mongoose = require("mongoose");
 const { sendEmail } = require("../utils/email");
 
 // ! Register user with role-based permissions
+// exports.registerUser = async (req, res) => {
+//   try {
+//     const { name, email, password, role } = req.body;
+//     if (!name || !email || !password || !role) {
+//       return res
+//         .status(400)
+//         .json({ message: "All fields are required", result: false });
+//     }
+
+//     const creator = await User.findById(req.user.id);
+//     if (!creator)
+//       return res
+//         .status(404)
+//         .json({ message: "Creator not found", result: false });
+
+//     // Role-based permission checks
+//     if (creator.role === "superadmin") {
+//       if (role !== "club") {
+//         return res
+//           .status(403)
+//           .json({
+//             message: "Superadmin can only create Club users",
+//             result: false,
+//           });
+//       }
+//     } else if (creator.role === "club") {
+//       if (!["doctor", "sportsperson"].includes(role)) {
+//         return res
+//           .status(403)
+//           .json({
+//             message: "Club can only create Doctor and Sportsperson users",
+//             result: false,
+//           });
+//       }
+//     } else {
+//       return res
+//         .status(403)
+//         .json({
+//           message: "You are not allowed to create users",
+//           result: false,
+//         });
+//     }
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res
+//         .status(400)
+//         .json({ message: "User already exists", result: false });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const user = new User({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       role,
+//       createdBy: req.user.id,
+//     });
+//     await user.save();
+
+//     res
+//       .status(201)
+//       .json({ message: "User created successfully", user, result: true });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message, result: false });
+//   }
+// };
+
+
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    if (!name || !email || !password || !role) {
+    const { firstName, lastName, email, password, role, address, pinCode, doctorDetails, sportspersonDetails } = req.body;
+    if (!firstName || !lastName || !email || !password || !role) {
       return res
         .status(400)
         .json({ message: "All fields are required", result: false });
@@ -61,11 +130,16 @@ exports.registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
       role,
+      address,
+      pinCode,
       createdBy: req.user.id,
+      doctorDetails: role === "doctor" ? doctorDetails : undefined,
+      sportspersonDetails: role === "sportsperson" ? sportspersonDetails : undefined,
     });
     await user.save();
 
@@ -407,7 +481,7 @@ exports.deleteUser = async (req, res) => {
           result: false,
         });
       }
-    } 
+    }
 
     const userToDelete = await User.findById(userIdToDelete);
     if (!userToDelete) {
