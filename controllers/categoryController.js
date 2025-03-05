@@ -55,16 +55,26 @@ exports.updateCategory = async (req, res) => {
   }
 };
 
-// Delete Category
+// Delete/Restore Category (Soft Delete Toggle)
 exports.deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id).populate(
-      "createdBy"
-    );
+    const category = await Category.findById(req.params.id).populate("createdBy");
     if (!category)
       return res.status(404).json({ message: "Category not found" });
-    res.json({ message: "Category deleted successfully" });
+
+    // Toggle status: if already soft deleted (status 0), set to 1 (active), else set to 0 (soft deleted)
+    category.status = category.status === 0 ? 1 : 0;
+    await category.save();
+
+    res.status(200).json({ 
+      message: category.status === 0 ? "Category marked as inactive" : "Category marked as active", 
+      result: true 
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      message: "An error occurred while updating category status", 
+      error: error.message, 
+      result: false 
+    });
   }
 };

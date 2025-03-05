@@ -54,12 +54,24 @@ exports.updateProduct = async (req, res) => {
 // Delete Product
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id).populate(["category", "createdBy"]);
+    const product = await Product.findById(req.params.id).populate(["category", "createdBy"]);
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Product not found", result: false });
     }
-    res.json({ message: "Product deleted successfully" });
+
+    // Toggle status: if already soft deleted (status 0), set to 1 (active), else set to 0 (soft deleted)
+    product.status = product.status === 0 ? 1 : 0;
+    await product.save();
+
+    res.status(200).json({ 
+      message: product.status === 0 ? "Product marked as inactive" : "Product marked as active", 
+      result: true 
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      message: "An error occurred while updating product status", 
+      error: error.message, 
+      result: false 
+    });
   }
 };

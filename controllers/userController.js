@@ -296,17 +296,18 @@ exports.getUserById = async (req, res) => {
 // ! Update User Profile (Only Name)
 exports.updateUserProfile = async (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { firstName, lastName, address, pinCode } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ message: "Name is required", result: false });
-  }
-
-  // Inform the user that only the name can be updated
-  if (Object.keys(req.body).length > 1) {
-    return res
-      .status(400)
-      .json({ message: "You can only update the name field", result: false });
+  // Inform the user about allowed fields
+  const allowedFields = ['firstName', 'lastName', 'address', 'pinCode'];
+  const providedFields = Object.keys(req.body);
+  
+  const invalidFields = providedFields.filter(field => !allowedFields.includes(field));
+  if (invalidFields.length > 0) {
+    return res.status(400).json({ 
+      message: `You can only update the following fields: ${allowedFields.join(', ')}`, 
+      result: false 
+    });
   }
 
   try {
@@ -315,7 +316,12 @@ exports.updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found", result: false });
     }
 
-    user.name = name;
+    // Update fields if provided
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (address) user.address = address;
+    if (pinCode) user.pinCode = pinCode;
+
     await user.save();
 
     res.json({
