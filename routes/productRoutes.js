@@ -10,7 +10,7 @@ const { authenticate, roleCheck, permissionCheck } = require("../middleware/auth
 const router = express.Router();
 
 // Product routes with authentication and role and permission checks
-router.post("/", authenticate, roleCheck(["club"]), permissionCheck("canCreateProduct"), createProduct);
+router.post("/", authenticate, roleCheck(["club"]), createProduct);
 router.get("/", getProducts);
 router.get("/:id", getProductById);
 router.put("/:id", authenticate, roleCheck(["club"]), permissionCheck("canUpdateProduct"), updateProduct);
