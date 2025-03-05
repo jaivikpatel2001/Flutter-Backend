@@ -8,6 +8,7 @@ const {
   getUserById,
   forgotPassword,
   resetPassword,
+  updateUserProfile, // Added updateUserProfile
 } = require("../controllers/userController");
 const {
   authenticate,
@@ -30,5 +31,6 @@ router.post("/reset-password", resetPassword);
 router.post("/register", authenticate, registerUser);
 router.get("/", authenticate, roleCheck(["superadmin"]), getUsers);
 router.get("/:id", authenticate, getUserById);
+router.put("/profile/:id", authenticate, updateUserProfile); // Added route for updating user profile
 
 module.exports = router;

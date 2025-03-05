@@ -139,6 +139,37 @@ exports.getUserById = async (req, res) => {
   res.json(result);
 };
 
+// ! Update User Profile (Only Name)
+exports.updateUserProfile = async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: "Name is required", result: false });
+  }
+
+  // Inform the user that only the name can be updated
+  if (Object.keys(req.body).length > 1) {
+    return res.status(400).json({ message: "You can only update the name field", result: false });
+  }
+
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found", result: false });
+    }
+
+    user.name = name;
+    await user.save();
+
+    res.json({ message: "User profile updated successfully", user, result: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message, result: false });
+  }
+};
+
+
+
 exports.getUserByIdHandler = async (userId) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
